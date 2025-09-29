@@ -140,3 +140,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def get_location():
+    try:
+        response = request.get("http://ip-api.com/json")
+def get_weather(city)

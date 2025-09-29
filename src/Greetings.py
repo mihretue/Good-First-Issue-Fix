@@ -1,6 +1,9 @@
 from datetime import datetime
 import pytz
-
+import requests
+from dotenv import load_dotenv
+import os
+load_dotenv()
 # Creating some greetings based on different languages
 greetings = {    # this defines the greetings in english 
     "en": {
@@ -94,7 +97,37 @@ def change_timezone(): # defines the process for getting user input for time zon
     except pytz.UnknownTimeZoneError:
         print("Hmm, that doesn't look like a valid timezone. Defaulting to Asia/Kolkata.")
         return "Asia/Kolkata"
+    
+def get_location():
+    """Fetch user's location using IP API."""
+    try:
+        response = requests.get("https://ipapi.co/json")
+        data = response.json()
+        print("DEBUG LOCATION RESPONSE:", data)  # <--- add this
+        return data.get("city"), data.get("country_name")
+    except Exception as e:
+        print("Failed to get location:", e)
+        return None, None
 
+    
+def get_weather(city):
+    """Fetch weather from OpenWeatherMap API."""
+    API_KEY = os.getenv("Wheather")
+    print(f"apie key {API_KEY}")
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    try:
+        response = requests.get(url)
+        
+        data = response.json()
+        print("DEBUG API RESPONSE:", data)  # <--- see what the API returns
+        if data.get("main"):
+            temp = data["main"]["temp"]
+            desc = data["weather"][0]["description"].capitalize()
+            return f"{temp}°C, {desc}"
+        else:
+            return f"Weather API error: {data.get('message', 'Unknown error')}"
+    except Exception as e:
+        return f"Weather request failed: {e}"
 
 def display_menu(username, lang, timezone):
     while True:
@@ -107,7 +140,15 @@ def display_menu(username, lang, timezone):
         choice = input("What would you like to do? ")
 
         if choice == "1":
+            city, country = get_location()
+            
             greet_user(username, lang, timezone)
+            if city:
+                weather = get_weather(city)
+                print(f"greeting! 🌍\nThe weather in {city}, {country} is {weather}")
+            else:
+                print(f"greeting! (Location not found)")
+        
         elif choice == "2":
             lang = change_language()
         elif choice == "3":
@@ -127,6 +168,7 @@ def display_menu(username, lang, timezone):
         else:
             print("Oops! That's not a valid choice. Try again.")
 
+    
 
 def main():
     print("Hey there! Welcome to the Greeting Program!")
@@ -141,7 +183,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-def get_location():
-    try:
-        response = request.get("http://ip-api.com/json")
-def get_weather(city)
